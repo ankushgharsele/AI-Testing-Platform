@@ -1,0 +1,53 @@
+```
+.
+├── .github/                            # Contains GitHub Actions workflows for continuous integration and deployment.
+├── playwright-framework/               # Houses global Playwright setup and custom utilities directly related to Playwright's execution context.
+│   ├── global.setup.ts                 # Script executed once before all tests for global setup (e.g., database seeding).
+│   └── auth.setup.ts                   # Dedicated setup for generating and storing authentication state for tests.
+├── src/                                # Core automation framework source code, organized into modular components.
+│   ├── config/                         # Manages application configuration and environment-specific settings.
+│   │   ├── environments/               # Specific configuration files for different deployment environments.
+│   │   │   ├── dev.config.ts
+│   │   │   └── qa.config.ts
+│   │   └── index.ts                    # Centralized entry point for accessing application configuration.
+│   ├── constants/                      # Stores immutable values, enumerations, and magic strings used across the framework.
+│   ├── fixtures/                       # Defines custom Playwright test fixtures for reusable setup and teardown logic.
+│   │   ├── base.fixture.ts             # Extensible base fixture for common page and context functionalities.
+│   │   └── api.fixture.ts              # Custom fixture tailored for API test contexts and HTTP client setup.
+│   ├── helpers/                        # Provides generic, reusable helper functions for common tasks (e.g., logging, custom assertions).
+│   │   ├── assertions.helper.ts        # Helper functions for custom assertion logic.
+│   │   └── date.helper.ts              # Utilities for date and time manipulations.
+│   ├── pages/                          # Implements the Page Object Model (POM) for abstracting UI interactions.
+│   │   ├── common/                     # Page objects for common UI components (e.g., headers, footers, navigation bars).
+│   │   │   └── HeaderComponent.ts
+│   │   ├── auth/                       # Page objects related to authentication flows (e.g., login, registration).
+│   │   │   └── LoginPage.ts
+│   │   ├── retailers/                  # Page objects specific to retailer management features.
+│   │   │   └── CreateRetailerPage.ts   # Page object for interacting with the 'Create Retailer' form.
+│   │   └── PageManager.ts              # A manager class to instantiate and provide access to all page objects.
+│   ├── test-data/                      # Repository for static or dynamically generated test data, organized by feature.
+│   │   ├── users.json                  # Sample user credentials or profiles for authentication testing.
+│   │   ├── retailers/                  # Data specific to retailer entities and creation scenarios.
+│   │   │   └── newRetailer.ts          # Functions or objects for generating new retailer data.
+│   │   └── schemas/                    # JSON schemas for validating API responses or data structures.
+│   ├── types/                          # TypeScript definitions for custom types, interfaces, and enums used in the framework.
+│   └── utils/                          # Contains general utility functions that support the automation framework.
+│       ├── api.utils.ts                # Utility functions for making and validating API calls.
+│       ├── browser.utils.ts            # Browser-level utilities (e.g., taking screenshots, handling downloads).
+│       └── string.utils.ts             # Utilities for string manipulation and generation.
+├── tests/                              # Organizes test scripts based on type, feature, or module.
+│   ├── api/                            # Contains API-level tests to validate backend endpoints and services.
+│   │   └── retailers/
+│   │       └── createRetailer.api.spec.ts # API test for creating a retailer via API endpoint.
+│   ├── e2e/                            # End-to-end tests simulating user journeys through the UI.
+│   │   ├── auth/
+│   │   │   └── login.spec.ts           # E2E test for user login functionality.
+│   │   ├── retailers/
+│   │   │   └── createRetailer.spec.ts  # E2E test for the US-002: Create Retailer feature.
+│   └── performance/                    # Placeholder for performance tests, if integrated with tools like Playwright or k6.
+├── reports/                            # Destination for generated test reports and execution artifacts.
+│   ├── html/                           # HTML reports generated by Playwright's built-in reporter.
+│   ├── json/                           # Raw JSON reports of test results for programmatic access.
+│   └── allure-results/                 # Allure report data for detailed, interactive test reporting.
+└── playwright.config.ts                # The main Playwright configuration file, defining projects, reporters, and global options.
+```
