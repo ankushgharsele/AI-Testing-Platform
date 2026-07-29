@@ -1,192 +1,465 @@
 # Playwright Automation Execution Guide
 
-This guide provides comprehensive instructions for setting up, executing, and analyzing the results of the Playwright automation project. It is designed for QA engineers, developers, and anyone involved in the automated testing process.
+This guide provides comprehensive instructions for setting up, configuring, executing, and troubleshooting the Playwright TypeScript automation project. It is designed for QA engineers, developers, and other stakeholders involved in testing the application.
 
-## Project Overview
+## 1. Project Overview
 
-This project provides an automated end-to-end testing solution for web applications, leveraging the Playwright framework. The primary focus of the initial scripts is to validate core user functionalities, specifically the login process, ensuring robust and reliable access to the application.
+This automation project leverages Playwright with TypeScript to provide robust and scalable automated testing for critical web application functionalities. The primary goals include ensuring the stability and correctness of user interactions and API integrations.
 
-Key features of this automation project include:
+**Key Functionalities Automated:**
 
-*   **End-to-End Testing**: Simulates real user interactions to test the application from the user's perspective.
-*   **Login Functionality Validation**: Comprehensive tests cover successful login with valid credentials, error handling for invalid credentials, and scenarios with empty input.
-*   **Page Object Model (POM)**: Implements the Page Object Model design pattern for maintainable, reusable, and readable test code, abstracting page interactions from test logic.
-*   **Data-Driven Testing**: Utilizes external test data to easily manage and extend test scenarios without modifying core test scripts.
-*   **Cross-Browser Compatibility**: Designed to run seamlessly across various modern web browsers (Chromium, Firefox, WebKit).
-*   **Fast & Reliable Execution**: Leverages Playwright's capabilities for quick and consistent test execution.
+*   **Salesman Login Functionality:** Covers positive login scenarios with valid credentials and negative scenarios for invalid credentials. This ensures users can securely access the application.
+*   **Product Search Functionality:** Comprehensive testing of the product search feature, including:
+    *   Searching by exact and partial product names and SKUs (case-insensitive where applicable).
+    *   Handling scenarios with no matching results, empty, or space-only queries.
+    *   Validating input for maximum length and supported/unsupported characters.
+    *   Verifying UI elements, keyboard navigation, and browser history integration.
+    *   API-level validation for search endpoints, including error handling for missing parameters.
+    *   Security testing against SQL Injection and Cross-Site Scripting (XSS) attempts.
+    *   Performance measurement of search response times.
+    *   Pagination functionality on search results pages.
+    *   Integration with product detail pages.
 
-This project aims to enhance the quality assurance process by providing a robust automation suite that quickly identifies regressions and ensures a smooth user experience.
+The project utilizes Playwright's rich API for browser automation, TypeScript for type safety and maintainability, and a structured Page Object Model (POM) approach to organize test code and selectors efficiently. Test cases are detailed, and assertions validate expected behavior across UI and API layers, using a variety of test data, including valid, invalid, boundary, and security-focused inputs.
 
-## Prerequisites
+## 2. Prerequisites
 
-Before you begin, ensure you have the following software installed on your system:
+Before you begin, ensure you have the following software installed on your machine:
 
-*   **Node.js (LTS Version)**: Playwright requires Node.js to run. We recommend installing the latest Long Term Support (LTS) version.
-    *   Download from: [nodejs.org](https://nodejs.org/)
-*   **Visual Studio Code (VS Code)**: A popular and powerful code editor recommended for developing and managing Playwright projects.
-    *   Download from: [code.visualstudio.com](https://code.visualstudio.com/)
-    *   *Recommended Extensions*: Playwright Test for VS Code.
-*   **Playwright**: The core automation library. It will be installed as a project dependency.
-*   **Git**: A version control system essential for cloning the repository and managing code changes.
-    *   Download from: [git-scm.com](https://git-scm.com/)
+*   **Node.js & npm:** Playwright requires Node.js. It is recommended to use an LTS version. `npm` (Node Package Manager) is included with Node.js.
+    *   You can download Node.js from [nodejs.org](https://nodejs.org/).
+*   **Code Editor:** A powerful code editor like [Visual Studio Code](https://code.visualstudio.com/) is recommended for a better development experience.
+*   **Git:** For cloning the repository and managing version control.
+    *   You can download Git from [git-scm.com](https://git-scm.com/).
+*   **Playwright Browser Dependencies:** Playwright will automatically download the necessary browsers (Chromium, Firefox, WebKit) upon first installation, but some system dependencies might be required depending on your OS.
 
-## Installation
+## 3. Project Setup
 
-Follow these steps to set up the Playwright project on your local machine:
+Follow these steps to get the automation project up and running on your local machine:
 
-1.  **Clone the Repository (if applicable)**:
-    If this project is hosted in a Git repository, clone it to your local machine:
+1.  **Clone the Repository:**
     ```bash
     git clone <repository-url>
-    cd <project-folder-name>
+    cd <project-folder>
     ```
+    *(Replace `<repository-url>` with the actual URL of your Git repository and `<project-folder>` with the name of the cloned directory.)*
 
-2.  **Install Node.js Dependencies**:
-    Navigate to the project's root directory in your terminal and install all required Node.js packages as defined in `package.json`:
+2.  **Install Dependencies:**
+    Install all required Node.js packages using npm:
     ```bash
     npm install
     ```
 
-3.  **Install Playwright Browser Binaries**:
-    Playwright needs browser binaries to execute tests. Install them using the Playwright CLI:
+3.  **Install Playwright Browsers:**
+    Playwright needs to download browser binaries. Execute the following command:
     ```bash
     npx playwright install
     ```
-    This command downloads Chromium, Firefox, and WebKit browsers.
+    This will install Chromium, Firefox, and WebKit, as configured in `playwright.config.ts`.
 
-## Execute Tests
+4.  **Configure Environment Variables:**
+    Create a `.env` file in the project root by copying the provided `.env.example`:
+    ```bash
+    cp .env.example .env
+    ```
+    Then, open the newly created `.env` file and update the variables with your actual application URL and credentials:
+    ```dotenv
+    # .env
+    BASE_URL=https://your-application-url.com
+    SALESMAN_USERNAME=your_salesman_username
+    SALESMAN_PASSWORD=your_salesman_password
+    ```
+    **Important:** Do not commit `.`env` file to version control as it contains sensitive information.
 
-Playwright provides various options to execute your test suite. Navigate to the project's root directory in your terminal to run these commands.
+## 4. Project Structure
 
-*   **Run All Tests**:
-    Executes all test files found in the `tests` directory using the configurations defined in `playwright.config.ts`.
+The project follows a well-defined structure to ensure maintainability, scalability, and clarity:
+
+```
+├── node_modules/                 # Directory where all Node.js module dependencies are installed.
+├── playwright-report/            # Contains the default Playwright HTML reports generated after test execution.
+├── screenshots/                  # Stores screenshots captured during test failures or specific test steps.
+├── test-results/                 # Holds artifacts from test runs, such as traces, videos, and detailed snapshots.
+├── .env                          # Environment variables for different test environments or configurations.
+├── .gitignore                    # Specifies intentionally untracked files and directories to ignore by Git.
+├── package.json                  # Defines project metadata, scripts, and lists all dependencies.
+├── tsconfig.json                 # TypeScript compiler configuration for the entire project.
+├── playwright.config.ts          # The main Playwright configuration file, defining projects, reporters, and settings.
+└── src/                          # Primary directory for all automation framework source code and components.
+    ├── api/                      # Encapsulates API client definitions and related utilities for direct backend interactions.
+    ├── components/               # Reusable UI component models for interacting with complex, generic UI elements.
+    ├── config/                   # Environment-specific configuration settings and values (e.g., `app.config.ts`).
+    ├── constants/                # Global constants, enumerations, and fixed values used across the framework (e.g., `app.constants.ts` implied).
+    ├── fixtures/                 # Custom Playwright test fixtures for robust test setup, teardown, and data provisioning.
+    ├── helpers/                  # Collection of generic utility functions and common methods used throughout the framework.
+    ├── pages/                    # Page Object Models (POMs) representing distinct web pages or major application sections.
+    │   ├── base/                 # Base Page Object class providing common functionalities for all derived page objects.
+    │   ├── common/               # Page objects or fragments for elements present across multiple application pages.
+    │   └── sales/                # Page Object Models specifically for the Sales module (e.g., `LoginPage`, `DashboardPage`).
+    ├── reports/                  # Stores custom generated test reports or aggregated results beyond Playwright's default.
+    ├── test-data/                # Repository for static or dynamically generated test data used in test scenarios.
+    │   └── sales/                # Test data files specifically tailored for the Sales module.
+    ├── tests/                    # Directory containing all Playwright test specifications and test suites.
+    │   ├── api/                  # Tests designed to validate the functionality and integrity of application APIs.
+    │   ├── e2e/                  # End-to-End tests simulating complete user journeys and application workflows.
+    │   │   └── sales/            # E2E tests dedicated to the Sales module (e.g., `login.spec.ts`).
+    │   ├── features/product-search/ # (Inferred from assertions, contains `product-search.spec.ts` for product search features)
+    │   └── unit/                 # (Optional) Placeholder for unit tests of framework components.
+    ├── types/                    # Custom TypeScript type definitions and interfaces for improved type safety.
+    └── utils/                    # General utility functions for logging, file operations, data manipulation, etc.
+```
+
+## 5. Test Configuration
+
+The `playwright.config.ts` file centralizes the configuration for the entire test project:
+
+*   **Test Directory:** Tests are located in the `./src/tests/e2e` directory.
+*   **Parallel Execution:** Tests are configured to run in parallel by default (`fullyParallel: true`).
+*   **CI Behavior:**
+    *   `forbidOnly`: Fails the build if `test.only` is present on CI environments.
+    *   `retries`: Tests are retried 2 times on CI, zero locally.
+    *   `workers`: On CI, tests run with 1 worker to ensure stable environments; otherwise, `undefined` allows Playwright to determine optimal worker count.
+*   **Reporter:** Uses the built-in HTML reporter (`reporter: 'html'`).
+*   **Base URL:** The `baseURL` is dynamically loaded from `AppConfig.baseURL`, which in turn reads from the `BASE_URL` environment variable in your `.env` file, falling back to `http://localhost:3000` if not set.
+*   **Timeouts:**
+    *   `actionTimeout`: 30000 milliseconds (30 seconds) for all user interactions.
+    *   `navigationTimeout`: 30000 milliseconds (30 seconds) for page navigations.
+*   **Headless Mode:** Tests run in headless mode on CI (`process.env.CI` is true); otherwise, browsers are shown for local debugging (`headless: false`).
+*   **Traces:** A trace is collected on the first retry of a failed test (`trace: 'on-first-retry'`) to aid debugging.
+*   **Browser Projects:** Tests are configured to run across three major browsers:
+    *   `chromium`: For Chrome and Edge compatibility.
+    *   `firefox`: For Mozilla Firefox compatibility.
+    *   `webkit`: For Apple Safari compatibility.
+*   **Environment Configuration:** `src/config/app.config.ts` centralizes application-specific settings, including `baseURL`, `defaultTimeout`, and credentials (`validSalesmanUsername`, `validSalesmanPassword`), which are loaded from `.env`.
+
+## 6. Execute Tests
+
+Here are common commands to execute tests in this Playwright project:
+
+*   **Run all tests:**
     ```bash
     npx playwright test
     ```
 
-*   **Run Tests in Headed Mode (with Browser UI Visible)**:
-    To observe the test execution in real-time, run tests in headed mode.
+*   **Run all tests in headed mode (browser UI visible):**
     ```bash
     npx playwright test --headed
     ```
 
-*   **Run a Specific Test File**:
-    To execute tests from a particular file, specify its path. For example, to run the Login tests:
+*   **Run a specific test file:**
     ```bash
-    npx playwright test tests/Login.spec.ts
+    npx playwright test src/tests/e2e/sales/login.spec.ts
     ```
+    *(For example, to run the salesman login tests.)*
 
-*   **Run Tests on a Specific Project/Browser**:
-    Playwright allows you to target specific browser configurations (projects) defined in `playwright.config.ts`. For instance, to run tests only on Chromium:
+*   **Run tests using Chromium browser:**
     ```bash
     npx playwright test --project=chromium
     ```
-    You can also specify other projects like `firefox` or `webkit`.
 
-*   **Run Tests with UI Mode**:
-    This opens a powerful UI where you can interactively run, debug, and filter tests.
+*   **Run tests using Firefox browser:**
     ```bash
-    npx playwright test --ui
+    npx playwright test --project=firefox
     ```
 
-## Generate Report
+*   **Run tests using WebKit browser:**
+    ```bash
+    npx playwright test --project=webkit
+    ```
 
-After test execution, Playwright automatically generates an HTML report that provides a detailed overview of the test results, including success/failure status, duration, and steps.
+*   **Run tests with a specific number of workers (e.g., 4):**
+    ```bash
+    npx playwright test --workers=4
+    ```
 
-*   **Open the HTML Report**:
-    To view the latest test report in your default web browser:
+*   **Run tests matching a specific grep pattern (e.g., all "PAT Creation" tests):**
+    ```bash
+    npx playwright test --grep "PAT Creation"
+    ```
+
+*   **Run tests by specific test case ID (e.g., "TC-PS-001"):**
+    ```bash
+    npx playwright test --grep "TC-PS-001"
+    ```
+
+## 7. Test Data
+
+The project utilizes a comprehensive set of test data to cover various scenarios, including valid, invalid, boundary, and security-related conditions. This data is designed to align with the test case specifications and ensure thorough validation.
+
+**Types of Test Data Used:**
+
+*   **Valid Data:**
+    *   **Login Credentials:** Configured in `.env` (e.g., `SALESMAN_USERNAME`, `SALESMAN_PASSWORD`) for successful application login.
+    *   **PAT Creation:** Various "PAT Note" names (`TestToken_ReadRepo`, `TestToken_MultiScope_Project`), different scopes (`repo`, `user:email`, `public_repo`, `read:org`, `gist`, `admin:repo_hook`, `workflow`), and expiration settings (`No expiration`, `7 days`, `90 days`, `Custom date`) for positive PAT generation tests.
+    *   **Product Search:** Exact product names (`Laptop Pro X`), partial names (`Laptop`), SKUs (`LPX-001`), and multi-keyword queries (`Gaming RGB`) to verify search accuracy.
+    *   **API Strings:** Placeholder PAT strings for successful API authentication.
+    *   **Product Catalog:** Detailed product information (name, SKU, price, description) for `Laptop Pro X`, `Wireless Mouse`, `Dell UltraSharp Monitor`, `Gaming Keyboard RGB`, `External SSD 1TB`, `RGB Gaming Mouse`, and `Brand New Gadget X` (simulated for catalog updates).
+
+*   **Invalid Data:**
+    *   **Login Credentials:** `invalid_user`, `invalid_password` to test negative login scenarios and error message display.
+    *   **PAT Creation:** Empty PAT Note (`""`), no scope selected (`(none selected)`), and past expiration dates (`Custom date` e.g., yesterday's date) to validate error handling.
+    *   **Product Search:** Non-existent product names (`XYZ NonExistent Product 123`, `NonExistentAPIProduct`) for "no results found" scenarios.
+    *   **API Parameters:** Missing query parameters for API endpoints to verify `400 Bad Request` responses.
+    *   **PAT Strings:** `ghp_invalidtokenstring`, `ghp_toolong...` for testing API calls with malformed or invalid tokens, expecting `401 Unauthorized` or `403 Forbidden`.
+
+*   **Boundary Values:**
+    *   **PAT Note Length:** A 255-character string (`A`.repeat(255)) to verify maximum length handling.
+    *   **Search Query Length:** A string exceeding the `MAX_SEARCH_QUERY_LENGTH` (e.g., `A`.repeat(265)) to test truncation and input field behavior.
+    *   **Empty/Spaces Search:** Empty string `""` and multiple spaces `"   "` to test input validation and search behavior.
+
+*   **Empty and Special Character Data:**
+    *   **Search Terms:** Terms with leading/trailing spaces (`  Wireless Mouse  `), supported special characters (`Dell UltraSharp Monitor`), unsupported/unsafe special characters (`` `!@#$%^&*()_+ ``) to ensure robustness.
+    *   **PAT Note:** Unicode (`日本語テストトークン`) and emoji (`My Token ✨🚀`) characters to verify internationalization support and display.
+
+*   **Security Test Data:**
+    *   **SQL Injection:** `' OR '1'='1`, `'; DROP TABLE products; --` as search terms to confirm protection against database attacks.
+    *   **XSS Injection:** `<script>alert('XSS')</script>`, `<img src=x onerror=alert('XSS')>` as search terms and PAT notes to verify input sanitization and prevent script execution.
+    *   **Revoked/Expired PATs:** Specific placeholder tokens for revoked/expired PATs (`ghp_revoked...`, `ghp_expired...`) to test API authentication failures.
+
+*   **Additional Scenario Data:**
+    *   **Pre-existing PATs:** `Active_Repo_Token`, `Active_Gist_7Day_Token`, `Expired_Login_Token`, `Revoked_Test_Token`, `MultiScopePAT_Dashboard` for listing, managing, and verifying token states.
+    *   **Duplicate PAT Name:** `DuplicateTestName` to test the system's handling of non-unique token names.
+    *   **UI Messages:** Expected validation messages (`Search query cannot be empty.`) and generic error messages (`Something went wrong. Please try again later.`) to verify UI feedback.
+
+This comprehensive test data strategy ensures that the application's functionality is thoroughly tested under a wide range of conditions, improving the reliability and security of the automated processes.
+
+## 8. Assertions and Validation
+
+The automation project uses Playwright's `expect` assertions to validate the application's behavior at both the UI and API levels. Key types of validations implemented include:
+
+*   **URL Validation:**
+    *   `await expect(page).toHaveURL(...)`: Ensures navigation to the correct page or that the URL contains expected parameters (e.g., after a search).
+    *   `new RegExp(...)`: Used for flexible URL matching, accommodating query parameters or dynamic paths.
+
+*   **Page Title Validation:**
+    *   `await expect(page).toHaveTitle(/Login|Sign In/i)`: Verifies that the page title is as expected, often used to confirm successful page loads.
+
+*   **UI Element Validation:**
+    *   `await expect(locator).toBeVisible()`: Checks if an element is present and visible on the page.
+    *   `await expect(locator).toBeEditable()`: Confirms an input field can be interacted with.
+    *   `await expect(locator).toBeEmpty()`: Verifies an input field has no value.
+    *   `await expect(locator).toHaveValue(text)`: Checks the current value of an input field.
+    *   `await expect(locator).toBeEnabled()` / `toBeDisabled()`: Validates the interactive state of buttons or input fields.
+    *   `await expect(locator).toBeHidden()`: Ensures an element is not visible, common for hidden error messages or non-existent elements.
+    *   `await expect(locator).toBeFocused()`: Confirms an element has keyboard focus, critical for accessibility tests.
+    *   `await expect(locator).toHaveAttribute(name, value)`: Verifies specific HTML attributes, like `placeholder` or `maxlength`.
+    *   `await expect(locator).toHaveCSS(property, value)`: Checks computed CSS properties (e.g., element width for responsiveness).
+
+*   **Text Content Validation:**
+    *   `await expect(locator).toContainText(text)`: Validates that an element's text content includes a specific substring.
+    *   `await expect(locator).not.toBeEmpty()`: Ensures an element's text content is not blank.
+
+*   **Success and Error Message Validation:**
+    *   `expect(errorMessageText).toContain('Invalid username or password')`: Verifies specific error messages are displayed for negative scenarios.
+    *   `await expect(page.locator('text=' + UI_MESSAGES.GENERIC_ERROR)).toBeVisible()`: Confirms the presence of generic error messages.
+
+*   **Positive and Negative Validations:**
+    *   Positive assertions (`toBeTruthy()`, `toBeVisible()`, `toHaveCount() > 0`) confirm expected success states.
+    *   Negative assertions (`toBeHidden()`, `not.toContainText()`, `not.toContainHTML()`, `toBeInvalid()`) ensure unwanted elements or behaviors are absent.
+
+*   **Count Validation:**
+    *   `await expect(locator).toHaveCount(number)`: Checks the number of elements matching a locator.
+    *   `await expect(locator).toBeGreaterThanOrEqual(number)`: Used for scenarios where a minimum number of results is expected.
+
+*   **API Response Validation:**
+    *   `await expect(response.status()).toBe(200)`: Validates the HTTP status code of API responses.
+    *   `await expect(response.headers()['content-type']).toContain('application/json')`: Confirms the response content type.
+    *   `const jsonResponse = await response.json()`: Parses and `expect(jsonResponse).toBeInstanceOf(Array|Object)`: Checks the structure of JSON responses.
+    *   `expect(jsonResponse.length).toBeGreaterThan(0)` / `expect(jsonResponse).toEqual([])`: Validates the content and size of API response bodies.
+    *   `expect(jsonResponse.message).toContain('Query parameter')`: Asserts specific error messages within API responses.
+
+*   **Performance Validation:**
+    *   `expect(duration).toBeLessThan(milliseconds)`: Measures the time taken for an action and compares it against a defined threshold.
+
+*   **Security Validations:**
+    *   `await expect(page.locator('body')).not.toContainText(/error|exception|sql error/i)`: Ensures no sensitive error messages are exposed on the UI.
+    *   `await expect(page.locator('body')).not.toContainHTML(term)`: Verifies that malicious scripts are not rendered as executable HTML.
+    *   `page.on('dialog', async dialog => { expect(false, ...).toBeTruthy(); })`: Catches unexpected alert dialogs (e.g., from XSS).
+
+These assertions collectively ensure that the application functions correctly, securely, and efficiently according to its requirements.
+
+## 9. Reports and Debugging
+
+Playwright offers excellent reporting and debugging tools to analyze test failures and execution.
+
+### HTML Report
+
+After running your tests, Playwright automatically generates an HTML report (unless configured otherwise).
+
+*   **Generate and Open Report:**
     ```bash
     npx playwright show-report
     ```
-    The report is typically generated in the `playwright-report` directory.
+    This command will open the HTML report in your browser, providing a visual overview of your test results, including passing, failing, skipped, and flaky tests. You can click on individual tests to view detailed steps, error messages, and captured artifacts like screenshots, videos, and traces.
 
-## Folder Structure
+### Debugging Options
 
-A well-organized folder structure is crucial for maintaining a scalable and understandable automation framework. Here's a typical structure used in this project:
+Playwright provides powerful debugging capabilities:
 
-```
-├── playwright.config.ts        # Playwright configuration file
-├── package.json                # Node.js project manifest (dependencies, scripts)
-├── node_modules/               # Installed Node.js packages
-├── tests/                      # Contains all test specification files
-│   └── Login.spec.ts           # Example test file for login functionality
-├── pages/                      # Implements the Page Object Model (POM)
-│   └── LoginPage.ts            # Page object for the login page
-├── utils/                      # Helper functions, custom commands, or shared utilities
-│   └── testData.ts             # Contains test data, e.g., credentials
-├── fixtures/                   # Optional: For custom test fixtures, base test setup, or environment-specific data
-│   # └── customTest.ts         # Example custom test object extending Playwright's test
-├── test-results/               # Generated artifacts like screenshots, videos, and trace files
-├── playwright-report/          # Generated HTML test reports
-└── .gitignore                  # Specifies intentionally untracked files to ignore
-```
+*   **Playwright Inspector (`--debug`):**
+    ```bash
+    npx playwright test --debug
+    ```
+    This command runs your tests in debug mode, launching a browser and opening the Playwright Inspector. The Inspector allows you to:
+    *   Step through your test execution line by line.
+    *   Inspect locators and see them highlighted in the browser.
+    *   Record new locators.
+    *   View actionability checks.
+    *   Analyze the test trace viewer after a step.
 
-*   **`playwright.config.ts`**: The main configuration file for Playwright. It defines browser projects, timeouts, reporting options, and more.
-*   **`package.json`**: Standard Node.js file listing project metadata, scripts, and dependencies.
-*   **`node_modules/`**: Directory where `npm install` places all project dependencies.
-*   **`tests/`**: This directory holds all your `.spec.ts` files, which contain the actual test cases.
-*   **`pages/`**: Implements the Page Object Model (POM). Each file in this directory represents a page or a major component of your application, encapsulating its selectors and interactions.
-*   **`utils/`**: Contains utility functions, shared helper methods, custom assertions, or data providers that are used across multiple tests or page objects. For instance, `testData.ts` would store test data used by your test cases.
-*   **`fixtures/`**: An optional directory that can contain custom test fixtures, base test functions, or environment-specific data. This allows for extending Playwright's `test` object with custom functionalities (e.g., automatically logging in before tests) or providing test-specific data setup.
-*   **`test-results/`**: Playwright stores test run artifacts here, such as screenshots on failure, videos of test execution, and trace files.
-*   **`playwright-report/`**: The output directory for the HTML test reports generated by Playwright.
+*   **UI Mode (`--ui`):**
+    ```bash
+    npx playwright test --ui
+    ```
+    This command launches the Playwright UI mode, which provides an interactive test runner. In UI mode, you can:
+    *   Run tests individually, or in groups.
+    *   Filter tests by file, project, or title.
+    *   View test results in real-time.
+    *   Inspect a test's trace, video, and DOM snapshot directly within the UI.
+    *   Debug specific test steps, similar to the Inspector.
+    *   Interactively write new tests or debug existing ones with time travel debugging.
 
-## Troubleshooting
+### Artifacts for Debugging
 
-Here are some common issues you might encounter with Playwright and their respective solutions:
+The project is configured to collect useful artifacts:
 
-*   **Issue: Browser binaries not found.**
-    *   **Symptom**: `Error: BrowserType 'chromium' is not installed. Run 'npx playwright install chromium'`
-    *   **Solution**: Playwright requires specific browser binaries. Run the installation command:
-        ```bash
-        npx playwright install
-        ```
-        This installs all default browsers (Chromium, Firefox, WebKit). You can also install specific browsers, e.g., `npx playwright install chromium`.
+*   **Screenshots:** Screenshots are typically captured automatically on test failure and stored in the `screenshots/` directory. These help visualize the UI state at the point of failure.
+*   **Videos:** Videos of test runs are saved in the `test-results/` directory by default, especially when `trace: 'on-first-retry'` is enabled. These can provide a full recording of the browser interaction leading up to a failure.
+*   **Traces:** Playwright Traces capture all information about a test run, including Playwright API calls, network requests, DOM snapshots, and test code execution. They are generated for retried tests (`trace: 'on-first-retry'`) and stored in `test-results/`. You can open them using `npx playwright show-trace <path-to-trace.zip>` or directly from the HTML report/UI mode.
 
-*   **Issue: Element not found or selector issues.**
-    *   **Symptom**: `TimeoutError: Waiting for selector "..." failed: Timeout 30000ms exceeded.`
-    *   **Solution**:
-        *   **Verify Selector**: Double-check if your selector is correct and unique using browser developer tools.
-        *   **Wait for Element**: Ensure the element is present and visible. Playwright's `locator` methods often wait automatically, but sometimes explicit waits or conditional logic might be needed (e.g., `page.waitForLoadState('networkidle')`).
-        *   **Timing Issues**: The element might appear after some asynchronous operation. Consider increasing the default `timeout` in `playwright.config.ts` or for specific actions.
-        *   **Using Trace Viewer**: Run tests with tracing (`npx playwright test --trace on`) and use `npx playwright show-trace` to visually debug the test execution step-by-step.
+## 10. CI/CD Execution
 
-*   **Issue: Test timeout.**
-    *   **Symptom**: `Error: Test timeout of 30000ms exceeded.`
-    *   **Solution**:
-        *   **Increase Timeout**: If a test genuinely takes longer, increase the `timeout` property in `playwright.config.ts` or for a specific test/action.
-            ```typescript
-            // playwright.config.ts
-            timeout: 60 * 1000, // 60 seconds
-            ```
-        *   **Optimize Test Steps**: Review your test for unnecessary delays or inefficient steps.
-        *   **Parallel Execution**: If many tests run sequentially and hit a global timeout, consider increasing `workers` in `playwright.config.ts` to run tests in parallel.
+While specific CI/CD pipeline configurations are not provided in the artifacts, the Playwright project is set up to be CI/CD friendly.
 
-*   **Issue: Tests failing inconsistently (flakiness).**
-    *   **Symptom**: Tests pass sometimes and fail other times without code changes.
-    *   **Solution**:
-        *   **Robust Selectors**: Avoid brittle selectors (e.g., XPath with indices, CSS classes that change). Use stable attributes like `data-testid`, `id`, `name`, or `aria-label`.
-        *   **Explicit Waits**: While Playwright has auto-waiting, sometimes explicit waits for network requests or specific conditions (e.g., `page.waitForFunction`) are necessary.
-        *   **Retries**: Configure Playwright to retry failed tests in `playwright.config.ts`:
-            ```typescript
-            // playwright.config.ts
-            retries: 2, // Retries failed tests up to 2 times
-            ```
-        *   **Isolate Tests**: Ensure tests are independent and don't affect each other's state. Use `beforeEach` and `afterEach` hooks for proper setup and teardown.
+**Generic Recommendation:**
 
-*   **Issue: Node.js/npm related errors.**
-    *   **Symptom**: Errors during `npm install` or when running `npx` commands.
-    *   **Solution**:
-        *   **Check Node.js Version**: Ensure you have a compatible Node.js version installed (LTS recommended).
-        *   **Clear npm Cache**: Sometimes a corrupt npm cache can cause issues.
-            ```bash
-            npm cache clean --force
-            ```
-        *   **Reinstall Dependencies**: Delete `node_modules` and `package-lock.json` and reinstall.
-            ```bash
-            rm -rf node_modules package-lock.json
-            npm install
-            ```
-        *   **Update npm**: Ensure your npm is up to date: `npm install -g npm@latest`.
+For CI/CD environments (e.g., GitHub Actions, GitLab CI, Jenkins, Azure DevOps):
 
-If you encounter an issue not listed here, consult the official Playwright documentation or seek assistance from your team.
+1.  **Install Dependencies:** Ensure Node.js and npm are available, and run `npm install` to get project dependencies.
+2.  **Install Browsers:** Execute `npx playwright install --with-deps` to install browsers and their system dependencies.
+3.  **Set Environment Variables:** Configure your CI/CD pipeline to provide the necessary environment variables (e.g., `BASE_URL`, `SALESMAN_USERNAME`, `SALESMAN_PASSWORD`) as secrets. Playwright's `playwright.config.ts` uses `process.env.CI` to apply CI-specific settings (e.g., `retries: 2`, `workers: 1`, `headless: true`).
+4.  **Execute Tests:** Run the tests using the primary command:
+    ```bash
+    npx playwright test
+    ```
+    This command will run tests headless, with retries on failure, and generate an HTML report.
+5.  **Publish Reports:** Configure your CI/CD pipeline to publish the `playwright-report/` directory as a build artifact, allowing easy access to test results and traces.
+
+## 11. Troubleshooting
+
+Here's guidance for common issues you might encounter:
+
+*   **Browser Installation Issues:**
+    *   **Problem:** Browsers fail to install or tests cannot launch them.
+    *   **Solution:** Run `npx playwright install --with-deps` to ensure all system dependencies are installed. Check Playwright's official documentation for OS-specific prerequisites.
+
+*   **Locator Failures (`Locator.click() failed` or `Locator.isVisible() failed`):**
+    *   **Problem:** Playwright cannot find or interact with a UI element.
+    *   **Solution:**
+        *   Use `npx playwright test --debug` to launch the Playwright Inspector and visually verify if the locator is correct and the element is present/visible on the page.
+        *   Check the element's state (e.g., is it disabled, hidden behind another element?).
+        *   Review screenshots and videos from the test report for visual cues.
+        *   Ensure the page has fully loaded using `await page.waitForLoadState('networkidle')` or specific `waitFor` conditions.
+
+*   **Timeout Errors (`Timeout exceeded`):**
+    *   **Problem:** An action (click, fill) or navigation takes longer than the configured timeout.
+    *   **Solution:**
+        *   Inspect the test flow using `--debug` or traces to understand where the delay occurs.
+        *   Increase `actionTimeout` or `navigationTimeout` in `playwright.config.ts` if the application is genuinely slow, or for specific actions `locator.click({ timeout: 10000 })`.
+        *   Ensure `await page.waitForPageLoad()` (or similar `waitForLoadState`) is called after navigation or significant UI updates.
+        *   Check network requests in the trace viewer to identify slow API calls.
+
+*   **Environment/Configuration Issues:**
+    *   **Problem:** Tests fail due to incorrect URLs, credentials, or other environment-specific settings.
+    *   **Solution:**
+        *   Verify your `.env` file is correctly set up with the `BASE_URL`, `SALESMAN_USERNAME`, and `SALESMAN_PASSWORD`.
+        *   Ensure `playwright.config.ts` is correctly pointing to `AppConfig.baseURL` and other configurations.
+        *   Double-check that `AppConfig` values are being loaded correctly, especially `process.env` variables.
+
+*   **Test Data Problems:**
+    *   **Problem:** Tests fail because the data used is incorrect, missing, or causes unexpected behavior.
+    *   **Solution:**
+        *   Review the "Test Data" section in this guide and the test case pre-conditions.
+        *   Confirm that the `SALESMAN_USERNAME` and `SALESMAN_PASSWORD` in your `.env` are valid for the `BASE_URL` being tested.
+        *   For product search tests, ensure the `PRODUCT_DATA` in your application's backend or frontend matches the test data used in the tests.
+
+*   **Parallel Execution Issues (Flakiness):**
+    *   **Problem:** Tests pass locally but fail intermittently on CI when run in parallel, or vice-versa.
+    *   **Solution:**
+        *   Try running tests with `npx playwright test --workers=1` to isolate if the issue is concurrency-related.
+        *   Ensure test cases are independent and do not share or modify global state (e.g., login status, database entries) without proper isolation or cleanup using `test.beforeEach` / `test.afterEach` hooks.
+        *   Utilize `page.route` for API mocking where external dependencies might cause flakiness.
+
+*   **Failed Assertions (Unexpected Behavior):**
+    *   **Problem:** An `expect()` assertion fails, indicating the application behaves differently than expected.
+    *   **Solution:**
+        *   Use `--debug` or `--ui` to step through the test and observe the application's state.
+        *   Examine the generated screenshots, videos, and traces in the HTML report for visual evidence and network activity.
+        *   Compare the actual result with the `Expected Result` described in the test case documentation. This might indicate a bug in the application or an outdated test.
+
+## 12. Execution Flow
+
+The automation project's execution flow is structured to provide a clear and maintainable testing process:
+
+1.  **Test Configuration:** Playwright loads its global configuration from `playwright.config.ts` and application-specific settings from `src/config/app.config.ts`, including environment variables from `.env`. This dictates browser types, timeouts, retries, and base URLs.
+2.  **Test Data Preparation:** Test data, defined in the "Test Data" section, `src/config/app.config.ts` (for credentials), and potentially constants (for product search terms/details), is made available to the tests. For some tests (like `PAT-CRT-001`), dynamic data is generated during execution.
+3.  **Test Execution:** Playwright orchestrates the execution of test files (`.spec.ts` files) based on the chosen command (all tests, specific file, specific project).
+4.  **Page Objects / Application Interaction:**
+    *   Tests utilize Page Object Models (POMs) located in `src/pages/`.
+    *   Each POM (e.g., `LoginPage`, `DashboardPage`) encapsulates selectors and methods specific to a particular page or UI component.
+    *   The `BasePage` in `src/pages/base` provides common functionalities like navigation (`goto`), waiting for page loads (`waitForPageLoad`), and generic locator retrieval (`getByTestId`, `getByText`, `getByRole`).
+    *   Tests call these POM methods to interact with the application's UI (e.g., `loginPage.login(username, password)`).
+    *   For API tests, `src/api/` (implied from product search test) provides clients for direct backend interactions.
+5.  **Assertions:** After each interaction, `expect` assertions (as detailed in Section 8) are used to validate the state of the UI, API responses, and application behavior against expected outcomes.
+6.  **Test Result:** Each assertion contributes to the overall pass/fail status of a test. Playwright provides immediate console feedback.
+7.  **Report Generation:** Upon completion (or failure), Playwright generates an HTML report (`playwright-report/`), along with optional artifacts like screenshots, videos, and traces (`test-results/`), providing a detailed overview of the test run.
+
+## 13. Useful Commands
+
+Here is a quick reference for common Playwright commands:
+
+*   **Install Node.js dependencies:**
+    ```bash
+    npm install
+    ```
+*   **Install Playwright browser binaries:**
+    ```bash
+    npx playwright install
+    ```
+*   **Run all tests:**
+    ```bash
+    npx playwright test
+    ```
+*   **Run tests in headed mode (browser visible):**
+    ```bash
+    npx playwright test --headed
+    ```
+*   **Run a specific test file:**
+    ```bash
+    npx playwright test src/tests/e2e/sales/login.spec.ts
+    ```
+*   **Run tests on a specific browser (e.g., Chromium):**
+    ```bash
+    npx playwright test --project=chromium
+    ```
+*   **Run tests matching a grep pattern:**
+    ```bash
+    npx playwright test --grep "Product Search Functionality"
+    ```
+*   **Run tests with the Playwright Inspector for debugging:**
+    ```bash
+    npx playwright test --debug
+    ```
+*   **Launch Playwright UI for interactive testing and debugging:**
+    ```bash
+    npx playwright test --ui
+    ```
+*   **Open the generated HTML test report:**
+    ```bash
+    npx playwright show-report
+    ```
+*   **Run tests in CI mode (headless, retries=2, workers=1):**
+    ```bash
+    CI=true npx playwright test
+    ```
+    *(Note: The `CI=true` prefix is for Linux/macOS. For Windows PowerShell, use `$env:CI="true"; npx playwright test`)*
